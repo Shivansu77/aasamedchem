@@ -4,8 +4,8 @@ import { NextResponse } from "next/server";
 export async function proxy(request) {
   const { pathname } = request.nextUrl;
 
-  const isAdminRoute = pathname.startsWith("/admin");
-  const isSellerRoute = pathname.startsWith("/seller");
+  const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
+  const isSellerRoute = pathname.startsWith("/seller") || pathname.startsWith("/api/seller");
 
   if (isAdminRoute || isSellerRoute) {
     const token = await getToken({
@@ -14,6 +14,9 @@ export async function proxy(request) {
     });
 
     if (!token) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(loginUrl);
@@ -21,10 +24,16 @@ export async function proxy(request) {
 
     // Access control based on user roles
     if (isAdminRoute && token.role !== "admin") {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
 
     if (isSellerRoute && token.role !== "seller" && token.role !== "admin") {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
   }
@@ -33,5 +42,5 @@ export async function proxy(request) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/seller/:path*"],
+  matcher: ["/admin/:path*", "/seller/:path*", "/api/admin/:path*", "/api/seller/:path*"],
 };

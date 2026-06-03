@@ -31,8 +31,9 @@ CREATE TABLE IF NOT EXISTS products (
   cas_number    VARCHAR(50),
   sku           VARCHAR(100) UNIQUE,
   unit_id       INTEGER REFERENCES units(id),
-  price         NUMERIC(20,8) NOT NULL DEFAULT 0,
-  stock_qty     NUMERIC(20,8) NOT NULL DEFAULT 0,
+  image_url     TEXT,
+  price         NUMERIC(30,12) NOT NULL DEFAULT 0,
+  stock_qty     NUMERIC(30,12) NOT NULL DEFAULT 0,
   category      VARCHAR(100),
   is_active     BOOLEAN DEFAULT TRUE,
   created_at    TIMESTAMPTZ DEFAULT NOW(),
@@ -45,7 +46,7 @@ CREATE TABLE IF NOT EXISTS orders (
   user_id       INTEGER REFERENCES users(id),
   order_number  VARCHAR(50) UNIQUE NOT NULL,
   status        VARCHAR(50) DEFAULT 'pending',
-  total_amount  NUMERIC(20,8) NOT NULL DEFAULT 0,
+  total_amount  NUMERIC(30,12) NOT NULL DEFAULT 0,
   notes         TEXT,
   created_at    TIMESTAMPTZ DEFAULT NOW(),
   updated_at    TIMESTAMPTZ DEFAULT NOW()
@@ -56,9 +57,9 @@ CREATE TABLE IF NOT EXISTS order_items (
   id            SERIAL PRIMARY KEY,
   order_id      INTEGER REFERENCES orders(id) ON DELETE CASCADE,
   product_id    INTEGER REFERENCES products(id),
-  quantity      NUMERIC(20,8) NOT NULL,
-  unit_price    NUMERIC(20,8) NOT NULL,
-  subtotal      NUMERIC(20,8) NOT NULL,
+  quantity      NUMERIC(30,12) NOT NULL,
+  unit_price    NUMERIC(30,12) NOT NULL,
+  subtotal      NUMERIC(30,12) NOT NULL,
   created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -84,11 +85,73 @@ CREATE INDEX IF NOT EXISTS idx_order_items_product ON order_items(product_id);
 INSERT INTO units (name, abbreviation) VALUES
   ('Kilogram',    'kg'),
   ('Gram',        'g'),
-  ('Milligram',   'mg'),
   ('Litre',       'L'),
   ('Millilitre',  'mL'),
-  ('Piece',       'pcs'),
-  ('Box',         'box'),
-  ('Bottle',      'btl'),
-  ('Pack',        'pack')
+  ('Unit',        'unit')
 ON CONFLICT (abbreviation) DO NOTHING;
+
+-- ============================================================
+-- 6. Product Available Units (mapping for multiple units per product)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS product_available_units (
+  id            SERIAL PRIMARY KEY,
+  product_id    INTEGER REFERENCES products(id) ON DELETE CASCADE,
+  unit_id       INTEGER REFERENCES units(id) ON DELETE CASCADE,
+  price         NUMERIC(30,12) NOT NULL DEFAULT 0,
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(product_id, unit_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_pau_product ON product_available_units(product_id);
+
+-- ============================================================
+-- 7. Quotations (seller-created price quotes)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS quotations (
+  id                SERIAL PRIMARY KEY,
+  user_id           INTEGER REFERENCES users(id),
+  quotation_number  VARCHAR(50) UNIQUE NOT NULL,
+  status            VARCHAR(50) DEFAULT 'draft',
+  total_amount      NUMERIC(30,12) NOT NULL DEFAULT 0,
+  notes             TEXT,
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_quotations_user   ON quotations(user_id);
+CREATE INDEX IF NOT EXISTS idx_quotations_status ON quotations(status);
+
+-- 8. Quotation Items (line items in a quotation)
+
+CREATE TABLE IF NOT EXISTS quotation_items (
+  id              SERIAL PRIMARY KEY,
+  quotation_id    INTEGER REFERENCES quotations(id) ON DELETE CASCADE,
+  product_id      INTEGER REFERENCES products(id),
+  quantity        NUMERIC(30,12) NOT NULL,
+  unit_id         INTEGER REFERENCES units(id),
+  base_quantity   NUMERIC(30,12) NOT NULL DEFAULT 0,
+  base_unit_abbr  VARCHAR(20) NOT NULL DEFAULT 'unit',
+  unit_price      NUMERIC(30,12) NOT NULL,
+  subtotal        NUMERIC(30,12) NOT NULL,
+  created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_qi_quotation ON quotation_items(quotation_id);
+CREATE INDEX IF NOT EXISTS idx_qi_product   ON quotation_items(product_id);
+
+-- Precision and audit-column upgrades for databases bootstrapped from older versions.
+ALTER TABLE products ALTER COLUMN price TYPE NUMERIC(30,12);
+ALTER TABLE products ALTER COLUMN stock_qty TYPE NUMERIC(30,12);
+ALTER TABLE orders ALTER COLUMN total_amount TYPE NUMERIC(30,12);
+ALTER TABLE order_items ALTER COLUMN quantity TYPE NUMERIC(30,12);
+ALTER TABLE order_items ALTER COLUMN unit_price TYPE NUMERIC(30,12);
+ALTER TABLE order_items ALTER COLUMN subtotal TYPE NUMERIC(30,12);
+ALTER TABLE product_available_units ALTER COLUMN price TYPE NUMERIC(30,12);
+ALTER TABLE quotations ALTER COLUMN total_amount TYPE NUMERIC(30,12);
+ALTER TABLE quotation_items ALTER COLUMN quantity TYPE NUMERIC(30,12);
+ALTER TABLE quotation_items ALTER COLUMN unit_price TYPE NUMERIC(30,12);
+ALTER TABLE quotation_items ALTER COLUMN subtotal TYPE NUMERIC(30,12);
+ALTER TABLE quotation_items ADD COLUMN IF NOT EXISTS base_quantity NUMERIC(30,12) NOT NULL DEFAULT 0;
+ALTER TABLE quotation_items ADD COLUMN IF NOT EXISTS base_unit_abbr VARCHAR(20) NOT NULL DEFAULT 'unit';

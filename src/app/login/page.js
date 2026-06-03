@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -41,38 +42,23 @@ function LoginFormContent() {
   };
 
   return (
-    <div className="max-w-md w-full backdrop-blur-xl bg-surface-50/40 border border-white/10 p-8 rounded-2xl shadow-2xl relative z-10 space-y-8">
+    <div className="max-w-md w-full bg-white border border-slate-200 p-8 rounded-2xl shadow-xl relative z-10 space-y-8">
       {/* Branding header */}
       <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold text-lg mx-auto shadow-lg shadow-brand-500/20">
+        <div className="w-12 h-12 rounded-xl bg-brand-500 flex items-center justify-center text-white font-bold text-lg mx-auto shadow-md">
           A
         </div>
-        <h2 className="text-2xl font-bold tracking-tight text-white">Welcome back</h2>
-        <p className="text-sm text-white/55">
+        <h2 className="text-2xl font-extrabold tracking-tight text-slate-800">Welcome back</h2>
+        <p className="text-sm text-slate-500">
           Sign in to access your Medchem workspace
         </p>
       </div>
 
-      {/* Demo credentials hint */}
-      <div className="bg-white/5 border border-white/5 rounded-xl p-4 text-xs space-y-2">
-        <p className="font-semibold text-brand-400">Test Credentials:</p>
-        <div className="grid grid-cols-2 gap-2 text-white/60">
-          <div>
-            <span className="text-white/45 block">Admin Access:</span>
-            <span className="font-medium">admin@aasamedchem.com</span>
-            <span className="block font-mono text-white/35 text-[10px]">pass: admin123</span>
-          </div>
-          <div>
-            <span className="text-white/45 block">Seller Access:</span>
-            <span className="font-medium">seller@aasamedchem.com</span>
-            <span className="block font-mono text-white/35 text-[10px]">pass: seller123</span>
-          </div>
-        </div>
-      </div>
+
 
       {/* Error Alert */}
       {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm text-center">
+        <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center font-medium">
           {error}
         </div>
       )}
@@ -80,7 +66,7 @@ function LoginFormContent() {
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-white/70 uppercase tracking-wider">
+          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
             Email Address
           </label>
           <input
@@ -90,12 +76,12 @@ function LoginFormContent() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="name@example.com"
-            className="w-full bg-surface-100 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-all text-white placeholder-white/20 disabled:opacity-50"
+            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-all text-slate-800 placeholder-slate-400 disabled:opacity-50 shadow-sm"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-white/70 uppercase tracking-wider">
+          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
             Password
           </label>
           <input
@@ -105,14 +91,14 @@ function LoginFormContent() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
-            className="w-full bg-surface-100 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-all text-white placeholder-white/20 disabled:opacity-50"
+            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-all text-slate-800 placeholder-slate-400 disabled:opacity-50 shadow-sm"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3.5 px-4 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 text-white font-semibold rounded-xl text-sm transition-all focus:outline-none shadow-lg shadow-brand-500/15 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-3.5 px-4 bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl text-sm transition-all focus:outline-none shadow-sm disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
         >
           {loading ? (
             <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -121,19 +107,32 @@ function LoginFormContent() {
           )}
         </button>
       </form>
+
+      {/* Footer Links */}
+      <div className="flex flex-col gap-3 pt-2 text-center text-sm">
+        <Link href="/" className="text-slate-500 hover:text-slate-700 transition-colors font-medium">
+          &larr; Go to Home
+        </Link>
+        <div className="text-slate-500">
+          Don&apos;t have an account?{" "}
+          <Link href="/register" className="text-brand-600 font-bold hover:text-brand-500 transition-colors">
+            Register
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface-0 px-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 relative overflow-hidden">
       {/* Background glow effects */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-accent-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-100 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-sky-100 rounded-full blur-[120px] pointer-events-none" />
 
       <Suspense fallback={
-        <div className="max-w-md w-full backdrop-blur-xl bg-surface-50/40 border border-white/10 p-8 rounded-2xl text-center text-white/50">
+        <div className="max-w-md w-full bg-white border border-slate-200 p-8 rounded-2xl text-center text-slate-500 font-medium">
           Loading login form...
         </div>
       }>
