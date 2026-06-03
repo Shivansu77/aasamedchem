@@ -10,9 +10,11 @@ Production URL: _update after Vercel deployment_
 
 - Credentials authentication with role-based access for `admin` and `seller`.
 - Admin product CRUD with SKU, CAS number, category, image URL, stock, base unit, base price, and active/draft status.
-- Seller catalog with search, category filter, product cards, quantity input, unit selection, and live INR price preview.
+- **Admin Dashboard Charts**: Interactive visual analytics using `recharts` for tracking sales trends and product category distribution, alongside a live recent transactions feed.
+- Seller catalog with Next.js 15 native `<Form>` client-side routing for lightning-fast search, category filter, product cards, and live INR price previews.
+- Dedicated dynamic detail pages for rich product viewing (`/seller/catalog/[id]`) and complete quotation review (`/seller/quotations/[id]`).
 - Quotation cart for one or more products.
-- Server-side quotation calculation using database product prices and `Decimal.js`.
+- Server-side quotation calculation using database product prices and `Decimal.js` to eliminate floating point issues.
 - Admin orders/quotations page showing ordered quantity, ordered unit, converted base quantity, unit price, subtotal, total, seller, notes, and status.
 
 ## Tech Stack
