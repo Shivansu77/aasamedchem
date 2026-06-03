@@ -364,3 +364,4 @@ https://aasamedchem-eight.vercel.app
 This app manages chemical inventory and quotation workflows with role-based access control. Sellers create quotation requests, the system converts quantities safely, and admins review business activity.
 
 The recent admin issue was solved by turning the dashboard account count into a complete user-inspection flow. Admins can now click `Total Accounts`, see all users, and open a specific user to review profile and quotation history.
+<img src="./public/implementation.png" alt="AasaMedChem implementation diagram" width="100%" />
