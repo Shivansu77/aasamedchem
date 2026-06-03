@@ -15,15 +15,13 @@ https://aasamedchem-eight.vercel.app
 
 ## Current Documentation Status
 
-The old `docs/` folder has been deleted, so this README is now the main documentation file.
+This README gives the main project overview. Additional project notes can live in `docs/` and `explain.md`.
 
-I also checked for an implementation markdown file:
+Implementation file status:
 
 - `implementation.md` does not currently exist in this repository.
 - `implementation.png` exists at the project root and at `public/implementation.png`.
 - `explain.md` also exists and explains the recent admin user-list fix.
-
-Because the docs folder is gone, this README avoids links to missing documentation files and explains the project directly here.
 
 ## Implementation Image
 
