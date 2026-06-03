@@ -20,14 +20,14 @@ The old `docs/` folder has been deleted, so this README is now the main document
 I also checked for an implementation markdown file:
 
 - `implementation.md` does not currently exist in this repository.
-- `implementation.png` does exist at the project root.
+- `implementation.png` exists at the project root and at `public/implementation.png`.
 - `explain.md` also exists and explains the recent admin user-list fix.
 
 Because the docs folder is gone, this README avoids links to missing documentation files and explains the project directly here.
 
 ## Implementation Image
 
-![AasaMedChem implementation diagram](implementation.png)
+<img src="./public/implementation.png" alt="AasaMedChem implementation diagram" width="100%" />
 
 ## First-Principles Explanation
 
@@ -260,7 +260,8 @@ The detail page shows:
 | `scripts/db-init.js` | Database initialization script |
 | `scripts/seed-users.js` | Demo user seed script |
 | `tests/units.test.js` | Unit conversion tests |
-| `implementation.png` | Existing implementation image |
+| `implementation.png` | Existing implementation image at the project root |
+| `public/implementation.png` | Public copy of the implementation image used by this README |
 | `explain.md` | Explanation of the admin user-list fix |
 
 ## Local Setup
