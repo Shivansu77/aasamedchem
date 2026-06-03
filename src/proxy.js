@@ -1,0 +1,37 @@
+import { getToken } from "next-auth/jwt";
+import { NextResponse } from "next/server";
+
+export async function proxy(request) {
+  const { pathname } = request.nextUrl;
+
+  const isAdminRoute = pathname.startsWith("/admin");
+  const isSellerRoute = pathname.startsWith("/seller");
+
+  if (isAdminRoute || isSellerRoute) {
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+
+    if (!token) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // Access control based on user roles
+    if (isAdminRoute && token.role !== "admin") {
+      return NextResponse.redirect(new URL("/unauthorized", request.url));
+    }
+
+    if (isSellerRoute && token.role !== "seller" && token.role !== "admin") {
+      return NextResponse.redirect(new URL("/unauthorized", request.url));
+    }
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/admin/:path*", "/seller/:path*"],
+};
