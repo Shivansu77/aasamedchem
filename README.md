@@ -134,8 +134,11 @@ npm run build
 
 ## Architecture Preview
 
+![AasaMedChem implementation architecture, flows, ERD, and sequence diagram](public/implementation.png)
+
 Static image assets:
 
+- `public/implementation.png`
 - `public/architecture-diagram.svg`
 - `public/professional-architecture.svg`
 
