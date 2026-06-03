@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Design Tokens — aasamedchem
+   ============================================================ */
+
+@theme {
+  /* Brand palette */
+  --color-brand-50:  oklch(0.97 0.02 160);
+  --color-brand-100: oklch(0.93 0.04 160);
+  --color-brand-200: oklch(0.87 0.07 160);
+  --color-brand-300: oklch(0.78 0.11 160);
+  --color-brand-400: oklch(0.68 0.14 160);
+  --color-brand-500: oklch(0.58 0.15 160);
+  --color-brand-600: oklch(0.48 0.14 160);
+  --color-brand-700: oklch(0.40 0.12 160);
+  --color-brand-800: oklch(0.33 0.09 160);
+  --color-brand-900: oklch(0.26 0.07 160);
+  --color-brand-950: oklch(0.18 0.05 160);
+
+  /* Surface colors for dark mode */
+  --color-surface-0:   oklch(0.13 0.01 260);
+  --color-surface-50:  oklch(0.16 0.01 260);
+  --color-surface-100: oklch(0.20 0.01 260);
+  --color-surface-200: oklch(0.26 0.01 260);
+
+  /* Accent */
+  --color-accent-400: oklch(0.75 0.15 70);
+  --color-accent-500: oklch(0.65 0.18 70);
+
+  /* Font families */
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+}
+
+/* ============================================================
+   Base layer
+   ============================================================ */
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
