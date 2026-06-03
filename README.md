@@ -1,5 +1,21 @@
 # AasaMedChem
 
+## Login Credentials
+
+Admin Access:
+
+```text
+admin@aasamedchem.com
+pass: admin123
+```
+
+Seller Access:
+
+```text
+seller@aasamedchem.com
+pass: seller123
+```
+
 AasaMedChem is a role-based chemical inventory and quotation platform built with Next.js, NextAuth, Drizzle ORM, Neon PostgreSQL, and Vercel.
 
 The app has two main users:
@@ -15,13 +31,14 @@ https://aasamedchem-eight.vercel.app
 
 ## Current Documentation Status
 
-This README gives the main project overview. Additional project notes can live in `docs/` and `explain.md`.
 
-Implementation file status:
+I also checked for an implementation markdown file:
 
 - `implementation.md` does not currently exist in this repository.
 - `implementation.png` exists at the project root and at `public/implementation.png`.
 - `explain.md` also exists and explains the recent admin user-list fix.
+
+Because the docs folder is gone, this README avoids links to missing documentation files and explains the project directly here.
 
 ## Implementation Image
 
@@ -362,4 +379,3 @@ https://aasamedchem-eight.vercel.app
 This app manages chemical inventory and quotation workflows with role-based access control. Sellers create quotation requests, the system converts quantities safely, and admins review business activity.
 
 The recent admin issue was solved by turning the dashboard account count into a complete user-inspection flow. Admins can now click `Total Accounts`, see all users, and open a specific user to review profile and quotation history.
-
