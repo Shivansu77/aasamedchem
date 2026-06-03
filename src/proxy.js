@@ -6,8 +6,9 @@ export async function proxy(request) {
 
   const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
   const isSellerRoute = pathname.startsWith("/seller") || pathname.startsWith("/api/seller");
+  const isProfileRoute = pathname.startsWith("/profile");
 
-  if (isAdminRoute || isSellerRoute) {
+  if (isAdminRoute || isSellerRoute || isProfileRoute) {
     const token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
@@ -30,7 +31,7 @@ export async function proxy(request) {
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
 
-    if (isSellerRoute && token.role !== "seller" && token.role !== "admin") {
+    if (isSellerRoute && token.role !== "seller") {
       if (pathname.startsWith("/api/")) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
@@ -42,5 +43,5 @@ export async function proxy(request) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/seller/:path*", "/api/admin/:path*", "/api/seller/:path*"],
+  matcher: ["/admin/:path*", "/seller/:path*", "/profile", "/profile/:path*", "/api/admin/:path*", "/api/seller/:path*"],
 };

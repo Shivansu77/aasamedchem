@@ -3,18 +3,39 @@ import { authOptions } from "../api/auth/[...nextauth]/route";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import Link from "next/link";
+import SellerDashboardActivity from "@/components/seller/SellerDashboardActivity";
 
 export default async function SellerDashboard() {
   const session = await getServerSession(authOptions);
 
   let stats = { products: 0, quotations: 0 };
+  let recentQuotations = [];
   try {
     const productCount = await db.execute(sql`SELECT count(*) FROM products WHERE is_active = true`);
     const quotationCount = await db.execute(sql`SELECT count(*) FROM quotations WHERE user_id = ${session.user.id || 0}`);
+    const recentResult = await db.execute(sql`
+      SELECT
+        q.id,
+        q.quotation_number,
+        q.status,
+        q.total_amount,
+        q.created_at,
+        (SELECT count(*) FROM quotation_items qi WHERE qi.quotation_id = q.id) AS item_count
+      FROM quotations q
+      WHERE q.user_id = ${session.user.id || 0}
+      ORDER BY q.created_at DESC
+      LIMIT 5
+    `);
     stats = {
       products: Number(productCount.rows[0]?.count || 0),
       quotations: Number(quotationCount.rows[0]?.count || 0),
     };
+    recentQuotations = recentResult.rows.map((quote) => ({
+      ...quote,
+      created_at: quote.created_at ? new Date(quote.created_at).toISOString() : null,
+      total_amount: quote.total_amount || "0",
+      item_count: Number(quote.item_count || 0),
+    }));
   } catch (err) {
     console.error("Failed to fetch dashboard stats", err);
   }
@@ -55,10 +76,12 @@ export default async function SellerDashboard() {
         </Link>
       </div>
 
+      <SellerDashboardActivity quotations={recentQuotations} />
+
       {/* Quick Actions */}
       <div className="bg-white border border-slate-200 rounded-2xl p-8 space-y-6 shadow-sm">
         <h2 className="text-xl font-bold text-slate-800">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <Link href="/seller/catalog" className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-3 hover:bg-brand-50 hover:border-brand-200 transition-all group">
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-brand-100 text-brand-600">
@@ -81,6 +104,18 @@ export default async function SellerDashboard() {
               <h4 className="font-bold text-slate-700 group-hover:text-brand-700 transition-colors">View Quotations</h4>
             </div>
             <p className="text-sm text-slate-500">Check the status of your previously submitted quotes.</p>
+          </Link>
+
+          <Link href="/profile" className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-3 hover:bg-brand-50 hover:border-brand-200 transition-all group">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-brand-100 text-brand-600">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75A3 3 0 1 1 9 9.75a3 3 0 0 1 6 0Z" />
+                </svg>
+              </div>
+              <h4 className="font-bold text-slate-700 group-hover:text-brand-700 transition-colors">Profile</h4>
+            </div>
+            <p className="text-sm text-slate-500">Review your account details and workspace activity.</p>
           </Link>
         </div>
       </div>

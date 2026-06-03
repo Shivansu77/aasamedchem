@@ -13,10 +13,6 @@ export default async function Home() {
       
       {/* Top Header & Hero combined background */}
       <div className="bg-gradient-to-br from-[#eaf2f6] to-[#d6e6ef] pb-24 relative overflow-hidden">
-        
-        {/* Large decorative shape on right */}
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-500/10 rounded-full blur-3xl -translate-y-1/4 translate-x-1/4 pointer-events-none" />
-
         {/* Navigation Header */}
         <header className="relative z-50 px-6 py-5">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -76,10 +72,8 @@ export default async function Home() {
               </h1>
               
               <p className="text-slate-600 text-lg leading-relaxed max-w-lg">
-                Seamlessly advance scalable architectures with future-ready growth
-                strategies. Efficiently implement low-risk, high-return process
-                enhancements tailored for mission-critical testing procedures, especially
-                in publishing and related industries.
+                Browse active chemical inventory, request quantities in practical lab units,
+                and let admins review every quotation with precise base-unit conversions.
               </p>
 
               <div className="flex flex-wrap items-center gap-6 pt-2">
@@ -117,7 +111,7 @@ export default async function Home() {
                     width={480}
                     height={600}
                     priority
-                    className="object-contain object-bottom drop-shadow-2xl"
+                    className="h-auto w-full object-contain object-bottom drop-shadow-2xl"
                   />
                   {/* Floating badge */}
                   <div className="absolute top-12 right-0 bg-white px-4 py-2 rounded-full shadow-lg border border-slate-100 flex items-center gap-2">
@@ -138,19 +132,19 @@ export default async function Home() {
         <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-slate-100 text-center">
           <div>
             <p className="text-4xl font-extrabold text-slate-800 mb-1">4500+</p>
-            <p className="text-sm text-slate-500 font-medium">Happy Clients</p>
+            <p className="text-sm text-slate-500 font-medium">Catalog Requests</p>
           </div>
           <div>
             <p className="text-4xl font-extrabold text-slate-800 mb-1">200</p>
-            <p className="text-sm text-slate-500 font-medium">Warehouses</p>
+            <p className="text-sm text-slate-500 font-medium">SKU Groups</p>
           </div>
           <div>
             <p className="text-4xl font-extrabold text-slate-800 mb-1">500+</p>
-            <p className="text-sm text-slate-500 font-medium">Award Win</p>
+            <p className="text-sm text-slate-500 font-medium">Compounds</p>
           </div>
           <div>
             <p className="text-4xl font-extrabold text-slate-800 mb-1">20+</p>
-            <p className="text-sm text-slate-500 font-medium">Logistics Hubs</p>
+            <p className="text-sm text-slate-500 font-medium">Order Units</p>
           </div>
         </div>
       </section>
@@ -158,9 +152,9 @@ export default async function Home() {
       {/* Category Icons Grid */}
       <section id="catalog" className="py-16 px-6 max-w-6xl mx-auto space-y-12 bg-white rounded-3xl mb-24 shadow-sm border border-slate-100">
         <div className="text-center space-y-2">
-          <h2 className="text-3xl font-extrabold text-slate-800">Department Category</h2>
+          <h2 className="text-3xl font-extrabold text-slate-800">Research Categories</h2>
           <p className="text-slate-500 text-sm">
-            Browse by department for tailored services and expert solutions
+            Browse inventory by compound family, stock unit, and quoting workflow
           </p>
         </div>
 
@@ -182,32 +176,32 @@ export default async function Home() {
           <div className="space-y-10 relative z-10">
             <div className="space-y-6">
               <h2 className="text-4xl lg:text-5xl font-bold text-white leading-tight">
-                World-Class Healthcare<br/>
-                Services for you and your<br/>
-                loved ones
+                Quote-ready inventory<br/>
+                for precise chemical<br/>
+                procurement
               </h2>
-              <button className="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-6 rounded-full border border-white/30 transition-all flex items-center gap-2">
-                More Service &rarr;
-              </button>
+              <Link href="/login" className="inline-flex bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-6 rounded-full border border-white/30 transition-all items-center gap-2">
+                Open Workspace &rarr;
+              </Link>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 relative">
               <ServiceCard 
-                title="Radiology & Imaging" 
-                desc="Advanced diagnostic imaging services including X-ray, CT scan, MRI, and ultrasound to assist in accurate and efficient diagnosis."
+                title="Inventory Control" 
+                desc="Admins maintain active products, stock quantities, base units, prices, categories, CAS numbers, and SKUs in one workflow."
               />
               <ServiceCard 
-                title="Emergency Services" 
-                desc="24/7 immediate medical care for critical conditions, accidents, and life-threatening situations."
+                title="Unit Conversion" 
+                desc="Seller requests in kg, g, L, mL, or count units are normalized for reliable stock checks and pricing."
                 offset
               />
               <ServiceCard 
-                title="Pharmacy" 
-                desc="In-house medical store providing prescribed medications and health essentials, ensuring timely access."
+                title="Quotation Cart" 
+                desc="Sellers collect multiple products, preview INR totals, add notes, and submit a complete quotation for review."
               />
               <ServiceCard 
-                title="Laboratory Services" 
-                desc="Comprehensive lab testing for blood, urine, and other samples, supporting fast and precise medical diagnosis."
+                title="Admin Review" 
+                desc="Admins see seller identity, ordered quantity, converted base quantity, unit price, subtotal, and total in one place."
                 offset
               />
             </div>
@@ -217,10 +211,10 @@ export default async function Home() {
           <div className="relative flex justify-center lg:justify-end items-end h-full">
             <Image
               src="/chemist.png"
-              alt="Male Doctor"
+              alt="Chemical inventory specialist"
               width={500}
               height={700}
-              className="object-contain object-bottom drop-shadow-2xl z-10"
+              className="h-auto w-full max-w-[500px] object-contain object-bottom drop-shadow-2xl z-10"
             />
           </div>
         </div>

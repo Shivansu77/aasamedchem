@@ -33,11 +33,11 @@ const navItems = [
     ),
   },
   {
-    label: "Seller View",
-    href: "/seller",
+    label: "Profile",
+    href: "/profile",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75A3 3 0 1 1 9 9.75a3 3 0 0 1 6 0Z" />
       </svg>
     ),
   },
@@ -47,9 +47,9 @@ export default function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 min-h-screen border-r border-slate-200 bg-white flex flex-col shadow-sm z-10">
+    <aside className="w-full border-b border-slate-200 bg-white flex flex-col shadow-sm z-10 md:w-64 md:min-h-screen md:border-b-0 md:border-r">
       {/* Brand */}
-      <div className="px-6 py-5 border-b border-slate-200 flex items-center">
+      <div className="px-4 py-4 border-b border-slate-200 flex items-center sm:px-6 md:py-5">
         <Link href="/" className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-brand-500 flex items-center justify-center text-white font-bold text-sm shadow-md">
             A
@@ -61,7 +61,7 @@ export default function AdminSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-1">
+      <nav className="flex gap-2 overflow-x-auto px-4 py-3 md:flex-1 md:flex-col md:gap-0 md:space-y-1 md:overflow-visible md:py-6">
         {navItems.map((item) => {
           const isActive = item.href === "/admin" 
             ? pathname === "/admin"
@@ -71,7 +71,7 @@ export default function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 group ${
+              className={`flex shrink-0 items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 group md:shrink ${
                 isActive
                   ? "bg-brand-50 text-brand-700"
                   : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
@@ -90,7 +90,7 @@ export default function AdminSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-4 border-t border-slate-200">
+      <div className="px-4 py-3 border-t border-slate-200 md:py-4">
         <LogoutButton className="w-full px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 text-sm font-semibold rounded-xl transition-all cursor-pointer text-center shadow-sm" />
       </div>
     </aside>

@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import Link from "next/link";
 import DashboardCharts from "@/components/admin/DashboardCharts";
+import DashboardActivity from "@/components/admin/DashboardActivity";
 
 export default async function AdminDashboard() {
   const session = await getServerSession(authOptions);
@@ -62,7 +63,11 @@ export default async function AdminDashboard() {
       ORDER BY q.created_at DESC
       LIMIT 10
     `);
-    recentQuotations = recentResult.rows;
+    recentQuotations = recentResult.rows.map((quote) => ({
+      ...quote,
+      created_at: quote.created_at ? new Date(quote.created_at).toISOString() : null,
+      total_amount: quote.total_amount || "0",
+    }));
 
   } catch (err) {
     console.error("Failed to fetch dashboard stats", err);
@@ -119,66 +124,7 @@ export default async function AdminDashboard() {
       {/* Charts Section */}
       <DashboardCharts categoryData={categoryData} trendData={trendData} />
 
-      {/* Recent Quotations Table (Who bought what) */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-800">Recent Quotation Activity</h2>
-          <Link href="/admin/orders" className="text-sm font-bold text-brand-600 hover:text-brand-700 transition-colors">
-            View All &rarr;
-          </Link>
-        </div>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-slate-500">Buyer</th>
-                <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-slate-500">Quote #</th>
-                <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-slate-500">Products Included</th>
-                <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-slate-500">Date</th>
-                <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-slate-500">Total</th>
-                <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-slate-500 text-right">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {recentQuotations.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="py-12 text-center text-slate-400 font-medium">No recent activity.</td>
-                </tr>
-              ) : (
-                recentQuotations.map(quote => (
-                  <tr key={quote.quotation_id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-4 px-4">
-                      <div className="font-bold text-slate-800">{quote.buyer_name || "Unknown"}</div>
-                      <div className="text-xs text-slate-500">{quote.buyer_email || "No email"}</div>
-                    </td>
-                    <td className="py-4 px-4 font-mono text-sm text-slate-600">{quote.quotation_number}</td>
-                    <td className="py-4 px-4 text-sm text-slate-600 truncate max-w-[200px]" title={quote.products_list}>
-                      {quote.products_list || "No products"}
-                    </td>
-                    <td className="py-4 px-4 text-sm text-slate-600">
-                      {new Date(quote.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                    </td>
-                    <td className="py-4 px-4 text-sm font-bold text-slate-800 tabular-nums">
-                      ₹{Number(quote.total_amount).toFixed(2)}
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                        quote.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
-                        quote.status === 'submitted' ? 'bg-sky-50 text-sky-600 border-sky-200' :
-                        quote.status === 'rejected' ? 'bg-red-50 text-red-500 border-red-200' :
-                        'bg-slate-50 text-slate-600 border-slate-200'
-                      }`}>
-                        {quote.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DashboardActivity quotations={recentQuotations} />
       
     </div>
   );

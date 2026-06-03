@@ -42,11 +42,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 relative overflow-hidden">
-      {/* Background glow effects */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-100 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-sky-100 rounded-full blur-[120px] pointer-events-none" />
-
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-10 relative overflow-hidden">
       <div className="max-w-md w-full bg-white border border-slate-200 p-8 rounded-2xl shadow-xl relative z-10 space-y-8">
         {/* Branding header */}
         <div className="text-center space-y-2">

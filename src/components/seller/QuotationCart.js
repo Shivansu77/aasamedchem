@@ -9,6 +9,7 @@ export default function QuotationCart() {
   const { cartItems, removeFromCart, clearCart, isCartOpen, setIsCartOpen } = useCart();
   const [loading, setLoading] = useState(false);
   const [notes, setNotes] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
 
   if (!isCartOpen) {
@@ -39,6 +40,7 @@ export default function QuotationCart() {
   const handleSubmit = async () => {
     if (cartItems.length === 0) return;
     setLoading(true);
+    setError("");
 
     try {
       const res = await fetch("/api/seller/quotations", {
@@ -54,7 +56,10 @@ export default function QuotationCart() {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to submit quotation");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to submit quotation");
+      }
 
       clearCart();
       setNotes("");
@@ -62,24 +67,29 @@ export default function QuotationCart() {
       router.push("/seller/quotations");
     } catch (err) {
       console.error(err);
-      alert("Error submitting quotation.");
+      setError(err.message || "Error submitting quotation.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 w-96 bg-white border-l border-slate-200 shadow-2xl flex flex-col z-50">
-      <div className="p-6 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+    <div className="fixed inset-0 sm:inset-y-0 sm:left-auto sm:right-0 sm:w-96 bg-white border-l border-slate-200 shadow-2xl flex flex-col z-50">
+      <div className="p-5 sm:p-6 border-b border-slate-200 flex items-center justify-between bg-slate-50">
         <h2 className="text-xl font-bold text-slate-800">Current Quotation</h2>
-        <button onClick={() => setIsCartOpen(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
+        <button
+          type="button"
+          aria-label="Close quotation cart"
+          onClick={() => setIsCartOpen(false)}
+          className="text-slate-400 hover:text-slate-700 transition-colors"
+        >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
         {cartItems.length === 0 ? (
           <div className="text-center text-slate-400 mt-10 font-medium">
             Your quotation cart is empty.
@@ -89,6 +99,8 @@ export default function QuotationCart() {
             <div key={index} className="bg-slate-50 border border-slate-200 p-4 rounded-xl relative shadow-sm">
               <button 
                 onClick={() => removeFromCart(index)}
+                type="button"
+                aria-label={`Remove ${item.product_name} from quotation`}
                 className="absolute top-2 right-2 text-slate-300 hover:text-red-500 transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -108,7 +120,12 @@ export default function QuotationCart() {
         )}
       </div>
 
-      <div className="p-6 border-t border-slate-200 bg-slate-50">
+      <div className="p-5 sm:p-6 border-t border-slate-200 bg-slate-50">
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+            {error}
+          </div>
+        )}
         <div className="mb-4">
           <textarea
             value={notes}
@@ -124,6 +141,7 @@ export default function QuotationCart() {
         </div>
         <button
           onClick={handleSubmit}
+          type="button"
           disabled={cartItems.length === 0 || loading}
           className="w-full py-3 bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl transition-colors shadow-sm disabled:opacity-50"
         >

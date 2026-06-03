@@ -2,8 +2,21 @@
 
 import { useState, Suspense } from "react";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const waitForSession = async (retries = 5, delayMs = 150) => {
+  for (let attempt = 0; attempt < retries; attempt += 1) {
+    const session = await getSession();
+    if (session?.user) {
+      return session;
+    }
+    await wait(delayMs);
+  }
+  return null;
+};
 
 function LoginFormContent() {
   const router = useRouter();
@@ -31,8 +44,11 @@ function LoginFormContent() {
       if (res?.error) {
         setError(res.error === "CredentialsSignin" ? "Invalid email or password" : res.error);
       } else if (res?.ok) {
-        router.push(callbackUrl);
-        router.refresh();
+        const session = await waitForSession();
+        const role = session?.user?.role;
+        const defaultDashboard = role === "admin" ? "/admin" : "/seller";
+        const targetUrl = callbackUrl && callbackUrl !== "/" ? callbackUrl : defaultDashboard;
+        window.location.assign(targetUrl);
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -126,11 +142,7 @@ function LoginFormContent() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 relative overflow-hidden">
-      {/* Background glow effects */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-100 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-sky-100 rounded-full blur-[120px] pointer-events-none" />
-
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-10 relative overflow-hidden">
       <Suspense fallback={
         <div className="max-w-md w-full bg-white border border-slate-200 p-8 rounded-2xl text-center text-slate-500 font-medium">
           Loading login form...

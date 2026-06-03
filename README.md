@@ -1,164 +1,153 @@
-# AasaMedChem Inventory & Quotation System
+# AasaMedChem Inventory, Quotation, and Order Platform
 
-AasaMedChem is a small inventory and quotation/order management system built for the hackathon assignment. It lets admins manage chemical products, stock, units, and INR pricing while sellers browse the catalog, enter quantities in flexible units, and submit quotations for admin review.
+AasaMedChem is a role-based chemical inventory and quotation system built for a hackathon assignment. Admins manage product inventory and review seller requests. Sellers browse products, search and filter the catalog, create quotations, and place order-ready requests using familiar units such as `kg`, `g`, `L`, `mL`, and `items`.
 
-## Live URL
+The system normalizes quantities before saving business data:
 
-Production URL: _update after Vercel deployment_
+- weight is stored internally in grams;
+- volume is stored internally in milliliters;
+- count is stored as items;
+- money and quantity values use high-precision PostgreSQL `NUMERIC` columns.
 
-## Features
-
-- Credentials authentication with role-based access for `admin` and `seller`.
-- Admin product CRUD with SKU, CAS number, category, image URL, stock, base unit, base price, and active/draft status.
-- **Admin Dashboard Charts**: Interactive visual analytics using `recharts` for tracking sales trends and product category distribution, alongside a live recent transactions feed.
-- Seller catalog with Next.js 15 native `<Form>` client-side routing for lightning-fast search, category filter, product cards, and live INR price previews.
-- Dedicated dynamic detail pages for rich product viewing (`/seller/catalog/[id]`) and complete quotation review (`/seller/quotations/[id]`).
-- Quotation cart for one or more products.
-- Server-side quotation calculation using database product prices and `Decimal.js` to eliminate floating point issues.
-- Admin orders/quotations page showing ordered quantity, ordered unit, converted base quantity, unit price, subtotal, total, seller, notes, and status.
+> Assignment target: `NUMERIC(20,8)`. Current implementation uses `NUMERIC(30,12)` for extra safety with chemical quantities and financial precision.
 
 ## Tech Stack
 
-- **Frontend/backend:** Next.js 16 App Router
-- **Auth:** NextAuth credentials provider
-- **Database:** Neon PostgreSQL
-- **Database access:** `@neondatabase/serverless` and Drizzle ORM
-- **Precision math:** `decimal.js`
-- **Styling:** Tailwind CSS v4
-- **Deployment:** Vercel
+| Layer | Technology |
+| --- | --- |
+| Frontend | Next.js App Router, React, Tailwind CSS, Shadcn UI-ready styling |
+| Auth | NextAuth/Auth.js Credentials Provider with JWT sessions |
+| Database | Neon PostgreSQL |
+| ORM | Drizzle ORM plus Neon serverless SQL client |
+| Precision math | Decimal.js |
+| Deployment | Vercel |
 
-Next.js route handlers and server components talk directly to Neon through lazy database helpers in `src/db/index.js` and `src/lib/db.js`. The seller UI calculates previews for responsiveness, but quotation submission is recalculated on the server before saving.
+## Roles
 
-## Database Schema
+| Role | Capabilities |
+| --- | --- |
+| Admin | Create, edit, delete products; view inventory; view orders/quotations; update order status |
+| User/Seller | Browse products; search/filter catalog; create quotations; place orders |
 
-Core tables are defined in `src/lib/schema.sql` and mirrored in `src/db/schema.js`.
+## Main Flow
 
-| Table | Purpose | Key fields |
-| --- | --- | --- |
-| `users` | Login and role data | `email VARCHAR(255)`, `password_hash VARCHAR(255)`, `role VARCHAR(50)` |
-| `units` | Supported units | `name VARCHAR(100)`, `abbreviation VARCHAR(20)` |
-| `products` | Inventory and pricing | `unit_id INTEGER`, `price NUMERIC(30,12)`, `stock_qty NUMERIC(30,12)`, `sku`, `cas_number`, `is_active` |
-| `product_available_units` | Extra order units enabled per product | `product_id`, `unit_id`, `price NUMERIC(30,12)` |
-| `quotations` | Submitted seller quotations | `quotation_number`, `user_id`, `status`, `total_amount NUMERIC(30,12)`, `notes` |
-| `quotation_items` | Auditable quotation lines | `quantity NUMERIC(30,12)`, `unit_id`, `base_quantity NUMERIC(30,12)`, `base_unit_abbr`, `unit_price NUMERIC(30,12)`, `subtotal NUMERIC(30,12)` |
+1. Seller searches the product catalog.
+2. Seller selects a product.
+3. Seller enters quantity and chooses an allowed unit.
+4. System converts the quantity into a canonical base unit.
+5. System calculates line total and quotation total.
+6. Seller submits the quotation/order request.
+7. Admin reviews the request and status.
 
-`orders` and `order_items` are also present as an extension point, but the completed assignment flow treats submitted quotations as the order/quotation workflow.
+## Repository Guide
 
-## Unit Storage and Conversion Strategy
+| Path | Purpose |
+| --- | --- |
+| `src/app` | Next.js App Router pages, layouts, and route handlers |
+| `src/components/admin` | Admin dashboard, sidebar, charts, and product form components |
+| `src/components/seller` | Seller catalog, cart, quotation, and product components |
+| `src/db/schema.js` | Drizzle schema and table relationships |
+| `src/lib/schema.sql` | SQL bootstrap schema for Neon |
+| `src/lib/units.js` | Unit conversion engine |
+| `src/lib/quotationMath.js` | Server-side quotation math |
+| `src/proxy.js` | Route protection and role-based access control |
+| `docs` | Architecture, diagrams, implementation plan, and technical documentation |
 
-Products are configured with a canonical base unit:
+## Documentation
 
-| Dimension | Internal base unit | Seller input units | Conversion |
-| --- | --- | --- | --- |
-| Weight | `g` | `g`, `kg` | `1 kg = 1000 g` |
-| Volume | `mL` | `mL`, `L` | `1 L = 1000 mL` |
-| Count | `unit` | `unit` | `1 unit = 1 unit` |
-
-Product `price` is stored as INR per product base unit. Product `stock_qty` is stored in the same base unit. All quantity and price fields use `NUMERIC(30,12)` to support large values and high decimal precision without floating-point loss.
-
-Conversions are implemented in `src/lib/units.js`. Quotation line math is implemented in `src/lib/quotationMath.js`. The seller product card uses the same conversion rules for preview, and `/api/seller/quotations` recalculates every line before insert.
-
-Example:
-
-- Product base price: `0.500000000000` INR per `g`
-- Seller orders: `1 kg`
-- Server stores: `quantity = 1`, ordered unit `kg`, `base_quantity = 1000`, `base_unit_abbr = g`
-- Server total: `1000 g * 0.5 INR = 500 INR`
-
-INR values are displayed with 2 decimals in the UI, but the database preserves 12 decimal places.
+- [Complete Architecture and Diagrams](docs/architecture.md)
+- [Implementation Plan](docs/implementation-plan.md)
+- [API Endpoint Documentation](docs/api-endpoints.md)
+- [Database Schema Documentation](docs/database-schema.md)
+- [Technical Decisions](docs/technical-decisions.md)
+- [Assumptions](docs/assumptions.md)
+- [Notion Documentation Page](docs/notion-page.md)
+- [Excalidraw-ready Diagrams](docs/excalidraw-diagrams.md)
 
 ## Local Setup
 
+Install dependencies:
+
 ```bash
 npm install
+```
+
+Create local environment variables:
+
+```bash
 cp .env.example .env.local
 ```
 
-Add your Neon connection string and auth values:
+Required values:
 
 ```bash
-DATABASE_URL=postgresql://...
-NEXTAUTH_SECRET=generate-a-random-32-byte-secret
+DATABASE_URL=postgresql://user:password@host/database?sslmode=require
+NEXTAUTH_SECRET=generate-a-random-secret
 NEXTAUTH_URL=http://localhost:3000
 ```
 
-Apply schema and seed demo users:
+Initialize and seed the database:
 
 ```bash
 node scripts/db-init.js
 node scripts/seed-users.js
 ```
 
-Start the app:
+Run development server:
 
 ```bash
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+Open:
 
-## Test Credentials
+```text
+http://localhost:3000
+```
+
+## Verification
+
+Run unit conversion tests:
+
+```bash
+node tests/units.test.js
+```
+
+Run lint:
+
+```bash
+npm run lint
+```
+
+Run production build:
+
+```bash
+npm run build
+```
+
+## Demo Credentials
 
 | Role | Email | Password |
 | --- | --- | --- |
 | Admin | `admin@aasamedchem.com` | `admin123` |
 | Seller | `seller@aasamedchem.com` | `seller123` |
 
-## How to Use
+## Architecture Preview
 
-Admin:
+Static image assets:
 
-- Sign in as admin.
-- Go to `/admin/products` to create, edit, delete, and review products.
-- Use base units `g`, `mL`, or `unit`; choose compatible order units such as `kg` or `L`.
-- Go to `/admin/orders` to review incoming quotations and verify conversion details.
+- `public/architecture-diagram.svg`
+- `public/professional-architecture.svg`
 
-Seller:
-
-- Sign in as seller.
-- Go to `/seller/catalog`.
-- Search or filter products.
-- Enter a quantity, choose an enabled unit, and review the INR preview.
-- Add one or more items to the quotation cart and submit.
-- Go to `/seller/quotations` to see submitted quotations.
-
-## Vercel Deployment
-
-1. Create or link the Vercel project:
-
-```bash
-vercel link
+```mermaid
+flowchart LR
+  Seller[Seller] --> Catalog[Seller Catalog]
+  Catalog --> Cart[Quotation Cart]
+  Cart --> API[/Seller Quotation API/]
+  API --> Math[Unit Conversion and Decimal Math]
+  Math --> DB[(Neon PostgreSQL)]
+  Admin[Admin] --> Orders[Admin Orders Review]
+  Orders --> DB
 ```
 
-2. Add production environment variables in Vercel:
-
-```bash
-vercel env add DATABASE_URL production
-vercel env add NEXTAUTH_SECRET production
-vercel env add NEXTAUTH_URL production
-```
-
-3. Deploy:
-
-```bash
-vercel --prod
-```
-
-4. Set `NEXTAUTH_URL` to the production URL and redeploy if needed.
-
-Do not commit `.env.local` or any secrets.
-
-## Verification
-
-```bash
-node tests/units.test.js
-npm run lint
-npm run build
-```
-
-The unit test suite covers conversion math, high precision values, large values, and quotation-line calculations across weight, volume, and count units.
-
-## Fix for Decimal Problem
-When users typed incomplete or invalid numbers (like a plain `.` or `-`) in the product quantity input, the `decimal.js` constructor threw an `[Error: [DecimalError] Invalid argument:]` error, causing the React component to crash. This happened because the browser's `<input type="number">` evaluates such temporary inputs as an empty string (`""`), which we were converting with `quantity || 0`, but if a user explicitly typed a dot, they could trigger the error in some environments.
-
-We solved this by introducing a `safeDecimal` helper function. This function uses a `try/catch` block and explicitly checks for common invalid states (like `""`, `"."`, `"-"`, `"+"`) before attempting to initialize `new Decimal()`. If an error occurs or the string is invalid, it safely falls back to `new Decimal(0)`, preventing the app from crashing and keeping the computed totals at 0 until a valid number is entered.
+See [docs/architecture.md](docs/architecture.md) for the full architecture diagrams, ERD, flowcharts, sequence diagrams, and Excalidraw-ready diagram content.
