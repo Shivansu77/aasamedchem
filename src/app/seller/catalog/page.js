@@ -2,6 +2,8 @@ import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import ProductCard from "@/components/seller/ProductCard";
 
+import Form from 'next/form';
+
 export const metadata = {
   title: "Product Catalog | Seller Panel",
 };
@@ -62,7 +64,7 @@ export default async function SellerCatalogPage(props) {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-        <form method="GET" action="/seller/catalog" className="flex flex-col sm:flex-row gap-4">
+        <Form key={search + category} action="/seller/catalog" className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
               <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
@@ -90,7 +92,7 @@ export default async function SellerCatalogPage(props) {
           <button type="submit" className="px-6 py-3 bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl transition-colors shadow-sm">
             Search
           </button>
-        </form>
+        </Form>
       </div>
 
       {products.length === 0 ? (

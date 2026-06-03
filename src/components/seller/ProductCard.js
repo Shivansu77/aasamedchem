@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useCart } from "./CartContext";
 import Decimal from "decimal.js";
 import { areConvertible, calcPrice, getUnitPrice } from "@/lib/units";
+import Link from "next/link";
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
@@ -40,11 +41,21 @@ export default function ProductCard({ product }) {
 
   const selectedUnit = useMemo(() => allUnits.find(u => u.id == selectedUnitId), [selectedUnitId, allUnits]);
 
+  const safeDecimal = (val) => {
+    try {
+      const v = typeof val === "string" ? val.trim() : val;
+      if (v === "" || v === "." || v === "-" || v === "+") return new Decimal(0);
+      return new Decimal(v || 0);
+    } catch {
+      return new Decimal(0);
+    }
+  };
+
   const computedTotal = useMemo(() => {
     if (!selectedUnit) return new Decimal(0);
 
     try {
-      const orderedQuantity = new Decimal(quantity || 0);
+      const orderedQuantity = safeDecimal(quantity);
       if (orderedQuantity.lte(0)) return new Decimal(0);
 
       if (areConvertible(selectedUnit.abbr, product.base_unit_abbr)) {
@@ -58,7 +69,7 @@ export default function ProductCard({ product }) {
   }, [quantity, selectedUnit, product]);
 
   const handleAddToCart = () => {
-    const orderedQuantity = new Decimal(quantity || 0);
+    const orderedQuantity = safeDecimal(quantity);
     if (orderedQuantity.lte(0)) return;
     const unitPrice = computedTotal.dividedBy(orderedQuantity);
     addToCart(
@@ -75,7 +86,7 @@ export default function ProductCard({ product }) {
     <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg hover:border-brand-200 transition-all flex flex-col group h-full shadow-sm">
       
       {/* Product Image */}
-      <div className="aspect-square bg-slate-100 relative overflow-hidden flex items-center justify-center border-b border-slate-100">
+      <Link href={`/seller/catalog/${product.id}`} className="block aspect-square bg-slate-100 relative overflow-hidden flex items-center justify-center border-b border-slate-100 cursor-pointer">
         {product.image_url ? (
           <img 
             src={product.image_url} 
@@ -90,13 +101,15 @@ export default function ProductCard({ product }) {
             <span className="text-xs uppercase tracking-widest font-semibold text-slate-400">No Image</span>
           </div>
         )}
-      </div>
+      </Link>
 
       <div className="p-5 flex-1 flex flex-col">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-base font-bold text-slate-800 group-hover:text-brand-600 transition-colors line-clamp-2">
-            {product.name}
-          </h3>
+          <Link href={`/seller/catalog/${product.id}`} className="block flex-1 pr-2">
+            <h3 className="text-base font-bold text-slate-800 group-hover:text-brand-600 transition-colors line-clamp-2">
+              {product.name}
+            </h3>
+          </Link>
           {Number(product.stock_qty) > 0 ? (
             <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase rounded-full border border-emerald-200 shrink-0 ml-2">In Stock</span>
           ) : (

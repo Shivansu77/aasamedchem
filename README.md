@@ -155,3 +155,8 @@ npm run build
 ```
 
 The unit test suite covers conversion math, high precision values, large values, and quotation-line calculations across weight, volume, and count units.
+
+## Fix for Decimal Problem
+When users typed incomplete or invalid numbers (like a plain `.` or `-`) in the product quantity input, the `decimal.js` constructor threw an `[Error: [DecimalError] Invalid argument:]` error, causing the React component to crash. This happened because the browser's `<input type="number">` evaluates such temporary inputs as an empty string (`""`), which we were converting with `quantity || 0`, but if a user explicitly typed a dot, they could trigger the error in some environments.
+
+We solved this by introducing a `safeDecimal` helper function. This function uses a `try/catch` block and explicitly checks for common invalid states (like `""`, `"."`, `"-"`, `"+"`) before attempting to initialize `new Decimal()`. If an error occurs or the string is invalid, it safely falls back to `new Decimal(0)`, preventing the app from crashing and keeping the computed totals at 0 until a valid number is entered.

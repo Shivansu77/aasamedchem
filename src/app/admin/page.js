@@ -3,11 +3,16 @@ import { authOptions } from "../api/auth/[...nextauth]/route";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import Link from "next/link";
+import DashboardCharts from "@/components/admin/DashboardCharts";
 
 export default async function AdminDashboard() {
   const session = await getServerSession(authOptions);
 
   let stats = { users: 0, products: 0, orders: 0 };
+  let categoryData = [];
+  let trendData = [];
+  let recentQuotations = [];
+
   try {
     const userCount = await db.execute(sql`SELECT count(*) FROM users`);
     const productCount = await db.execute(sql`SELECT count(*) FROM products`);
@@ -17,6 +22,48 @@ export default async function AdminDashboard() {
       products: Number(productCount.rows[0]?.count || 0),
       orders: Number(orderCount.rows[0]?.count || 0),
     };
+
+    // Category Distribution Data
+    const catResult = await db.execute(sql`
+      SELECT category as name, count(*) as value 
+      FROM products 
+      WHERE is_active = true AND category IS NOT NULL AND category != ''
+      GROUP BY category
+      ORDER BY value DESC
+    `);
+    categoryData = catResult.rows.map(r => ({ name: r.name, value: Number(r.value) }));
+
+    // Trend Data (Last 30 days)
+    const trendResult = await db.execute(sql`
+      SELECT DATE(created_at) as date, count(*) as count 
+      FROM quotations 
+      WHERE created_at >= NOW() - INTERVAL '30 days'
+      GROUP BY DATE(created_at) 
+      ORDER BY date ASC
+    `);
+    trendData = trendResult.rows.map(r => ({ date: r.date, count: Number(r.count) }));
+
+    // Recent Quotations Data (Who bought what)
+    const recentResult = await db.execute(sql`
+      SELECT 
+        q.id as quotation_id, 
+        q.quotation_number, 
+        q.total_amount, 
+        q.created_at, 
+        q.status,
+        u.name as buyer_name, 
+        u.email as buyer_email,
+        STRING_AGG(p.name, ', ') as products_list
+      FROM quotations q
+      LEFT JOIN users u ON u.id = q.user_id
+      LEFT JOIN quotation_items qi ON qi.quotation_id = q.id
+      LEFT JOIN products p ON p.id = qi.product_id
+      GROUP BY q.id, u.name, u.email
+      ORDER BY q.created_at DESC
+      LIMIT 10
+    `);
+    recentQuotations = recentResult.rows;
+
   } catch (err) {
     console.error("Failed to fetch dashboard stats", err);
   }
@@ -69,43 +116,70 @@ export default async function AdminDashboard() {
         </Link>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-8 space-y-6 shadow-sm">
-        <h2 className="text-xl font-bold text-slate-800">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <Link href="/admin/products/new" className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-3 hover:bg-brand-50 hover:border-brand-200 transition-all group">
-            <div className="flex items-center gap-3">
-              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-brand-100 text-brand-600 font-bold text-lg">+</span>
-              <h4 className="font-bold text-slate-700 group-hover:text-brand-700 transition-colors">Add New Product</h4>
-            </div>
-            <p className="text-sm text-slate-500">Create a new chemical or compound entry in the catalog.</p>
-          </Link>
+      {/* Charts Section */}
+      <DashboardCharts categoryData={categoryData} trendData={trendData} />
 
-          <Link href="/admin/products" className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-3 hover:bg-brand-50 hover:border-brand-200 transition-all group">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-brand-100 text-brand-600">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                </svg>
-              </div>
-              <h4 className="font-bold text-slate-700 group-hover:text-brand-700 transition-colors">Manage Products</h4>
-            </div>
-            <p className="text-sm text-slate-500">View, edit, and manage your product inventory and pricing.</p>
-          </Link>
-
-          <Link href="/seller" className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-3 hover:bg-brand-50 hover:border-brand-200 transition-all group">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-brand-100 text-brand-600">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
-                </svg>
-              </div>
-              <h4 className="font-bold text-slate-700 group-hover:text-brand-700 transition-colors">Seller Dashboard</h4>
-            </div>
-            <p className="text-sm text-slate-500">View and manage the sales catalog interface.</p>
+      {/* Recent Quotations Table (Who bought what) */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-slate-800">Recent Quotation Activity</h2>
+          <Link href="/admin/orders" className="text-sm font-bold text-brand-600 hover:text-brand-700 transition-colors">
+            View All &rarr;
           </Link>
         </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50">
+                <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-slate-500">Buyer</th>
+                <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-slate-500">Quote #</th>
+                <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-slate-500">Products Included</th>
+                <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-slate-500">Date</th>
+                <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-slate-500">Total</th>
+                <th className="py-3 px-4 font-bold text-xs uppercase tracking-wider text-slate-500 text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {recentQuotations.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="py-12 text-center text-slate-400 font-medium">No recent activity.</td>
+                </tr>
+              ) : (
+                recentQuotations.map(quote => (
+                  <tr key={quote.quotation_id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="py-4 px-4">
+                      <div className="font-bold text-slate-800">{quote.buyer_name || "Unknown"}</div>
+                      <div className="text-xs text-slate-500">{quote.buyer_email || "No email"}</div>
+                    </td>
+                    <td className="py-4 px-4 font-mono text-sm text-slate-600">{quote.quotation_number}</td>
+                    <td className="py-4 px-4 text-sm text-slate-600 truncate max-w-[200px]" title={quote.products_list}>
+                      {quote.products_list || "No products"}
+                    </td>
+                    <td className="py-4 px-4 text-sm text-slate-600">
+                      {new Date(quote.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </td>
+                    <td className="py-4 px-4 text-sm font-bold text-slate-800 tabular-nums">
+                      ₹{Number(quote.total_amount).toFixed(2)}
+                    </td>
+                    <td className="py-4 px-4 text-right">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                        quote.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                        quote.status === 'submitted' ? 'bg-sky-50 text-sky-600 border-sky-200' :
+                        quote.status === 'rejected' ? 'bg-red-50 text-red-500 border-red-200' :
+                        'bg-slate-50 text-slate-600 border-slate-200'
+                      }`}>
+                        {quote.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
+      
     </div>
   );
 }

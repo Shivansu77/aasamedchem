@@ -50,7 +50,7 @@ export default function AdminSidebar() {
     <aside className="w-64 min-h-screen border-r border-slate-200 bg-white flex flex-col shadow-sm z-10">
       {/* Brand */}
       <div className="px-6 py-5 border-b border-slate-200 flex items-center">
-        <Link href="/admin" className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-brand-500 flex items-center justify-center text-white font-bold text-sm shadow-md">
             A
           </div>

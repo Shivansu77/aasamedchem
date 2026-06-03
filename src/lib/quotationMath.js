@@ -3,8 +3,18 @@ import { areConvertible, calcPrice, convertToBase, getBaseType } from "./units.j
 
 Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
 
+export function safeDecimal(value) {
+  try {
+    const v = typeof value === "string" ? value.trim() : value;
+    if (v === "" || v === "." || v === "-" || v === "+") return new Decimal(0);
+    return new Decimal(v || 0);
+  } catch (error) {
+    return new Decimal(0);
+  }
+}
+
 export function toDecimalString(value, places = 12) {
-  return new Decimal(value || 0).toDecimalPlaces(places).toFixed();
+  return safeDecimal(value).toDecimalPlaces(places).toFixed();
 }
 
 export function formatINR(value) {
@@ -22,7 +32,7 @@ export function calculateQuotationLine({
   orderUnit,
   productBaseUnit,
 }) {
-  const orderedQuantity = new Decimal(quantity);
+  const orderedQuantity = safeDecimal(quantity);
 
   if (!orderedQuantity.isFinite() || orderedQuantity.lte(0)) {
     throw new Error("Quantity must be greater than zero.");
